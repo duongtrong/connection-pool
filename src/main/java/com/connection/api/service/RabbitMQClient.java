@@ -4,7 +4,6 @@ import com.connection.api.dto.ExchangeType;
 import com.connection.api.exception.RabbitMQException;
 import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -14,35 +13,35 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import java.io.IOException;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log4j2
 public class RabbitMQClient {
 
-  private final GenericObjectPool<Channel> pool;
   private static final Properties properties = new Properties();
-  private final AtomicBoolean stopped = new AtomicBoolean(false);
+  private static GenericObjectPool<Channel> pool;
 
   public RabbitMQClient() {
     initialLoadConfig();
+    initialGenericObjectPoolConfig();
+  }
 
+  private static void initialGenericObjectPoolConfig() {
+    ConnectionFactory connectionFactory = initialConnectionFactory();
+    GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
+    genericObjectPoolConfig.setMinIdle(8);
+    genericObjectPoolConfig.setMaxTotal(18);
+    genericObjectPoolConfig.setMinIdle(8);
+    pool = new GenericObjectPool<>(new RabbitMQChannelFactory(createConnection(connectionFactory)), genericObjectPoolConfig);
+  }
+
+  private static ConnectionFactory initialConnectionFactory() {
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setUsername(properties.getProperty("rabbitmq.username"));
     connectionFactory.setPassword(properties.getProperty("rabbitmq.password"));
     connectionFactory.setVirtualHost(properties.getProperty("rabbitmq.virtualHost"));
     connectionFactory.setHost(properties.getProperty("rabbitmq.hostname"));
     connectionFactory.setPort(Integer.parseInt(properties.getProperty("rabbitmq.port")));
-    ExecutorService workers = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
-    connectionFactory.setSharedExecutor(workers);
-    connectionFactory.setAutomaticRecoveryEnabled(true);
-
-    GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-    genericObjectPoolConfig.setMinIdle(8);
-    genericObjectPoolConfig.setMaxTotal(18);
-    genericObjectPoolConfig.setMinIdle(8);
-    pool = new GenericObjectPool<>(new RabbitMQChannelFactory(createConnection(connectionFactory)), genericObjectPoolConfig);
+    return connectionFactory;
   }
 
   private static void initialLoadConfig() {
@@ -57,7 +56,7 @@ public class RabbitMQClient {
   public void declareExchange(String exchange, Boolean durable, long key) {
     PoolableChannel channel = channel();
     try {
-      AMQP.Exchange.DeclareOk ok = channel.exchangeDeclare(exchange, "fanout", durable);
+      AMQP.Exchange.DeclareOk ok = channel.exchangeDeclare(exchange, ExchangeType.FANOUT.getExchangeName(), durable);
       log.debug(">>>>>> [{}] Channel exchangeDeclare: {}", key, ok);
     } catch (IOException e) {
       channel.setValid(false);
@@ -94,7 +93,7 @@ public class RabbitMQClient {
     }
   }
 
-  private Connection createConnection(ConnectionFactory factory) {
+  private static Connection createConnection(ConnectionFactory factory) {
     try {
       return factory.newConnection();
     } catch (Exception e) {
@@ -108,9 +107,5 @@ public class RabbitMQClient {
     } catch (Exception e) {
       throw new RabbitMQException(e);
     }
-  }
-
-  public boolean isStopped() {
-    return stopped.get();
   }
 }

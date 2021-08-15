@@ -82,14 +82,6 @@ public class RedisConnection {
     }
   }
 
-  private static void closePool(long key) {
-    log.debug(">>>>>> [{}] Close the connection pool JedisPool <<<<<<<", key);
-    if (jedisPool != null) {
-      log.debug(">>>>>> [{}] If condition JedisPool != null jedis destroy() <<<<<<<", key);
-      jedisPool.destroy();
-    }
-  }
-
   private static void closeJedis(Jedis jedis, long key) {
     log.debug(">>>>>> [{}] Jedis is close <<<<<<", key);
     if (jedis != null) {
@@ -143,7 +135,6 @@ public class RedisConnection {
     } finally {
       closeJedis(jedis, key);
     }
-    closePool(key);
   }
 
   public static String ping(long key) {

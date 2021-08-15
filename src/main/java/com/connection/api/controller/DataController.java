@@ -1,6 +1,5 @@
 package com.connection.api.controller;
 
-import com.connection.api.service.RabbitMQClient;
 import com.connection.api.service.RabbitMQConnection;
 import com.connection.api.service.RedisConnection;
 import lombok.extern.log4j.Log4j2;
@@ -25,9 +24,6 @@ public class DataController extends HttpServlet {
     try {
       req.setCharacterEncoding("UTF-8");
       resp.setContentType("application/json");
-
-//      ExecutorService service = Executors.newSingleThreadExecutor();
-//      service.execute(LoadConfigurationProperties::init);
 
       String data = req.getReader().lines().collect(Collectors.joining());
       log.debug(">>>>>> [{}] Request connection access to RabbitMQ!!!", key);
