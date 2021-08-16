@@ -1,5 +1,7 @@
 package com.connection.api.config;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -8,22 +10,20 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
-public class ConfigurationChangeListener implements Runnable {
-
+@Log4j2
+public class ConfigurationChangeListener implements Runnable{
   private String configFileName = null;
-  private final String fullFilePath;
+  private final String filePath;
 
   public ConfigurationChangeListener(final String filePath) {
-    this.fullFilePath = filePath;
+    this.filePath = filePath;
   }
 
   public void run() {
     try {
-      register(this.fullFilePath);
+      register(this.filePath);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -40,27 +40,42 @@ public class ConfigurationChangeListener implements Runnable {
   }
 
   private void startWatcher(String dirPath, String file) throws IOException {
-    try (WatchService watchService = FileSystems.getDefault()
-        .newWatchService()) {
-      Path path = Paths.get(dirPath);
-      path.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE);
+    final WatchService watchService = FileSystems.getDefault()
+        .newWatchService();
+    Path path = Paths.get(dirPath);
+    path.register(watchService, ENTRY_MODIFY);
 
-      WatchKey key;
-      while ((key = watchService.take()) != null) {
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      try {
+        watchService.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }));
+
+    WatchKey key;
+    while (true) {
+      try {
+        key = watchService.take();
         for (WatchEvent<?> event : key.pollEvents()) {
           if (event.context().toString().equals(configFileName)) {
             configurationChanged(dirPath + file);
           }
         }
-        key.reset();
+        boolean reset = key.reset();
+        if (!reset) {
+          log.debug(">>>>>> Could not reset the watch key. <<<<<<");
+          break;
+        }
+      } catch (InterruptedException e) {
+        log.debug(">>>>>> InterruptedException: " + e);
+        Thread.currentThread().interrupt();
       }
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-      Thread.currentThread().interrupt();
     }
   }
 
   public void configurationChanged(final String file) {
-    ApplicationConfiguration.initialized(file);
+    log.debug(">>>>>> Refreshing the configuration. <<<<<<");
+    ApplicationConfiguration.getInstance().initialize(file);
   }
 }
