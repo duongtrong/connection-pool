@@ -1,6 +1,6 @@
 package com.connection.api.service;
 
-import com.connection.api.exception.RabbitMQException;
+import com.connection.api.exception.ExceptionCentral;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.CancelCallback;
@@ -66,7 +66,7 @@ public class PoolableChannel implements Channel {
           pool.invalidateObject(delegate);
         }
       } catch (Exception e) {
-        throw new RabbitMQException(e);
+        throw new ExceptionCentral(e);
       }
     }
   }

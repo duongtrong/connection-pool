@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration status="INFO" monitorInterval="30">
+    <Properties>
+        <Property name="PATTERN">%d{DEFAULT} - %30.30M:%-3L - [%X{tokenKey}] - %m - %c{1.} %n</Property>
+        <Property name="FILE_NAME">/Users/duongtrong/Developers/Coder/connection/logs</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${PATTERN}"/>
+        </Console>
+        <RollingFile
+                name="rollBySizeInfo"
+                fileName="${FILE_NAME}/connection.log"
+                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection.%i.log">
+            <LevelRangeFilter minLevel="INFO" maxLevel="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="6" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="20GB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+        <RollingFile
+                name="rollBySizeError"
+                fileName="${FILE_NAME}/connection-error.log"
+                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection-error.%i.log">
+            <LevelRangeFilter minLevel="ERROR" maxLevel="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="6" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="20GB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <logger name="com.connection.api" additivity="false">
+            <AppenderRef ref="rollBySizeInfo"/>
+            <AppenderRef ref="rollBySizeError"/>
+            <AppenderRef ref="Console"/>
+        </logger>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

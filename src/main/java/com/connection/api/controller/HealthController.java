@@ -2,6 +2,7 @@ package com.connection.api.controller;
 
 import com.connection.api.service.RedisConnection;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.ThreadContext;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,14 +16,13 @@ public class HealthController extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-    long along = System.currentTimeMillis();
-    log.debug(">>>>>> [{}] {/api/v1/ping} request API from client <<<<<<", along);
-    String ping = RedisConnection.ping(along);
+    ThreadContext.put("tokenKey", String.valueOf(System.currentTimeMillis()));
+    log.info("{/api/v1/ping} request API from client.");
     try {
-      resp.getWriter().print(ping);
+      resp.getWriter().print(RedisConnection.ping());
     } catch (IOException e) {
-      log.error(">>>>>> [{}] Test API exception: ", along, e);
+      log.error("Test API exception: ", e);
     }
-    log.debug(">>>>>> [{}] {/api/v1/ping} DONE <<<<<<", along);
+    log.info("{/api/v1/ping} DONE Ping Request");
   }
 }

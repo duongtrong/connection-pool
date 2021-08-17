@@ -1,6 +1,6 @@
 package com.connection.api.util;
 
-import com.connection.api.exception.RabbitMQException;
+import com.connection.api.exception.ExceptionCentral;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,7 +40,7 @@ public final class JSON {
     try {
       return OBJECT_MAPPER.writeValueAsString(object);
     } catch (JsonProcessingException e) {
-      throw new RabbitMQException(e);
+      throw new ExceptionCentral(e);
     }
   }
 
@@ -57,7 +57,7 @@ public final class JSON {
       JavaType javaType = OBJECT_MAPPER.getTypeFactory().constructType(instanceType);
       return OBJECT_MAPPER.readValue(json, javaType);
     } catch (IOException e) {
-      throw new RabbitMQException(e);
+      throw new ExceptionCentral(e);
     }
   }
 

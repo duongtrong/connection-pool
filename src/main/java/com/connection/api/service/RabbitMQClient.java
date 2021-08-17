@@ -1,7 +1,7 @@
 package com.connection.api.service;
 
 import com.connection.api.dto.ExchangeType;
-import com.connection.api.exception.RabbitMQException;
+import com.connection.api.exception.ExceptionCentral;
 import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -28,9 +28,9 @@ public class RabbitMQClient {
   private static void initialGenericObjectPoolConfig() {
     ConnectionFactory connectionFactory = initialConnectionFactory();
     GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-    genericObjectPoolConfig.setMinIdle(8);
-    genericObjectPoolConfig.setMaxTotal(18);
-    genericObjectPoolConfig.setMinIdle(8);
+    genericObjectPoolConfig.setMinIdle(Integer.parseInt(properties.getProperty("rabbitmq.minIdle")));
+    genericObjectPoolConfig.setMaxIdle(Integer.parseInt(properties.getProperty("rabbitmq.maxIdle")));
+    genericObjectPoolConfig.setMaxTotal(Integer.parseInt(properties.getProperty("rabbitmq.maxTotal")));
     pool = new GenericObjectPool<>(new RabbitMQChannelFactory(createConnection(connectionFactory)), genericObjectPoolConfig);
   }
 
@@ -38,44 +38,42 @@ public class RabbitMQClient {
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setUsername(properties.getProperty("rabbitmq.username"));
     connectionFactory.setPassword(properties.getProperty("rabbitmq.password"));
-    connectionFactory.setVirtualHost(properties.getProperty("rabbitmq.virtualHost"));
     connectionFactory.setHost(properties.getProperty("rabbitmq.hostname"));
     connectionFactory.setPort(Integer.parseInt(properties.getProperty("rabbitmq.port")));
     return connectionFactory;
   }
 
   private static void initialLoadConfig() {
-    log.debug("======= Initialization load file configure =======");
     try {
       properties.load(RedisConnection.class.getClassLoader().getResourceAsStream("center.properties"));
     } catch (IOException e) {
-      log.error("======= Initial load config has ex: ", e);
+      log.error("Initial load config has ex: ", e);
     }
   }
 
-  public void declareExchange(String exchange, Boolean durable, long key) {
+  public void declareExchange(String exchange, Boolean durable) {
     PoolableChannel channel = channel();
     try {
       AMQP.Exchange.DeclareOk ok = channel.exchangeDeclare(exchange, ExchangeType.FANOUT.getExchangeName(), durable);
-      log.debug(">>>>>> [{}] Channel exchangeDeclare: {}", key, ok);
+      log.info("Channel exchangeDeclare: {}", ok);
     } catch (IOException e) {
       channel.setValid(false);
-      throw new RabbitMQException(e);
+      throw new ExceptionCentral(e);
     } finally {
       channel.close();
     }
   }
 
-  public void declareQueue(String exchange, String queue, long key) {
+  public void declareQueue(String exchange, String queue) {
     PoolableChannel channel = channel();
     try {
       AMQP.Queue.DeclareOk queueDeclare = channel.queueDeclare(queue, true, false, false, ImmutableMap.of());
-      log.debug(">>>>>> [{}] Channel queue declare: {} ", key, queueDeclare);
+      log.info("Channel queue declare: {} ", queueDeclare);
       AMQP.Queue.BindOk routingKey = channel.queueBind(queue, exchange, "");
-      log.debug(">>>>>> [{}] Channel bind a queue to an exchange: {} ", key, routingKey);
+      log.info("Channel bind a queue to an exchange: {} ", routingKey);
     } catch (IOException e) {
       channel.setValid(false);
-      throw new RabbitMQException(e);
+      throw new ExceptionCentral(e);
     } finally {
       channel.close();
     }
@@ -87,7 +85,7 @@ public class RabbitMQClient {
       channel.basicPublish(exchange, "", null, message);
     } catch (IOException e) {
       channel.setValid(false);
-      throw new RabbitMQException(e);
+      throw new ExceptionCentral(e);
     } finally {
       channel.close();
     }
@@ -97,7 +95,7 @@ public class RabbitMQClient {
     try {
       return factory.newConnection();
     } catch (Exception e) {
-      throw new RabbitMQException(e);
+      throw new ExceptionCentral(e);
     }
   }
 
@@ -105,7 +103,7 @@ public class RabbitMQClient {
     try {
       return new PoolableChannel(pool.borrowObject(), pool);
     } catch (Exception e) {
-      throw new RabbitMQException(e);
+      throw new ExceptionCentral(e);
     }
   }
 }

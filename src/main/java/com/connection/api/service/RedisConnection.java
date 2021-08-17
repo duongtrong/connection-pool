@@ -2,6 +2,7 @@ package com.connection.api.service;
 
 import com.connection.api.dto.Data;
 import com.connection.api.dto.DataResponse;
+import com.connection.api.exception.ExceptionCentral;
 import com.connection.api.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
@@ -23,7 +24,6 @@ public class RedisConnection {
   private static final JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
   private static final Properties properties = new Properties();
   private static final String KEY = "redis.key";
-  private static JedisPool jedisPool = null;
 
   private RedisConnection() {
     initialLoadConfig();
@@ -38,16 +38,18 @@ public class RedisConnection {
   }
 
   private static void initialLoadConfig() {
-    log.debug("======= Initialization load file configure =======");
+    log.info("Initialization load file configure");
     try {
       properties.load(RedisConnection.class.getClassLoader().getResourceAsStream("center.properties"));
     } catch (IOException e) {
-      log.error("======= Initial load config has ex: ", e);
+      log.error("Initial load config has ex:", e);
+      throw new ExceptionCentral(e);
     }
   }
 
-  private static JedisPool initialPool(long key) {
-    log.debug(">>>>>> [{}] Start config redis connection pool!!!", key);
+  private static JedisPool initialPool() {
+    log.info("Start config redis connection pool!!!");
+    JedisPool jedisPool;
     try {
       jedisPoolConfig.setMaxTotal(Integer.parseInt(properties.getProperty("redis.maxTotal")));
       jedisPoolConfig.setMaxIdle(Integer.parseInt(properties.getProperty("redis.maxIdle")));
@@ -61,93 +63,94 @@ public class RedisConnection {
       jedisPoolConfig.setTestOnBorrow(Boolean.parseBoolean(properties.getProperty("redis.testOnBorrow")));
       jedisPoolConfig.setTestOnReturn(Boolean.parseBoolean(properties.getProperty("redis.testOnReturn")));
 
-      log.debug(">>>>>> [{}] Set hostname: {} and port: {}", key, properties.getProperty("redis.hostname"), properties.getProperty("redis.port"));
+      log.info("Set hostname: {} and port: {}", properties.getProperty("redis.hostname"), properties.getProperty("redis.port"));
       jedisPool = new JedisPool(jedisPoolConfig, properties.getProperty("redis.hostname"), Integer.parseInt(properties.getProperty("redis.port")),
           Integer.parseInt(properties.getProperty("redis.timeOut")));
 
-      log.debug(">>>>>> [{}] Done config redis connection pool <<<<<<", key);
+      log.info("Done config redis connection pool");
     } catch (NumberFormatException e) {
-      log.error("Initialization config exception: ", e);
+      log.error("Initialization config exception:", e);
+      throw new ExceptionCentral(e);
     }
     return jedisPool;
   }
 
-  private static synchronized Jedis getJedis(long key) {
-    log.debug(">>>>>> [{}] Initialization get Jedis instance", key);
+  private static synchronized Jedis getJedis() {
+    log.info("Initialization get Jedis instance");
     try {
-      return initialPool(key).getResource();
+      return initialPool().getResource();
     } catch (Exception e) {
-      log.error(">>>>>> [{}] Connection refused: ", key, e);
-      return null;
+      log.error("Connection refused:", e);
+      throw new ExceptionCentral(e);
     }
   }
 
-  private static void closeJedis(Jedis jedis, long key) {
-    log.debug(">>>>>> [{}] Jedis is close <<<<<<", key);
+  private static void closeJedis(Jedis jedis) {
+    log.info("Jedis is close");
     if (jedis != null) {
-      log.debug(">>>>>> [{}] If condition Jedis between null Jedis is close <<<<<<", key);
+      log.info("If condition Jedis between null Jedis is close");
       jedis.close();
     }
   }
 
-  public void storeKeyValueInRedis(String data, HttpServletResponse response, long key) {
+  public void storeKeyValueInRedis(String data, HttpServletResponse response) {
     Jedis jedis = null;
     try {
-      jedis = getJedis(key);
+      jedis = getJedis();
       Data newData = HttpUtil.of(data).toModel(Data.class);
-      log.debug(">>>>>> [{}] Handle convert string to object <<<<<<  ", key);
+      log.info("Handle convert string to object");
       String value = jedis != null ? jedis.hget(properties.getProperty(KEY), newData.getTraceTransfer()) : null;
-      log.debug(">>>>>> [{}] Get value current inside Redis using hget: {}", key, value);
+      log.info("Get value current inside Redis using hget: {}", value);
       Boolean size = jedis != null ? jedis.hexists(properties.getProperty(KEY), newData.getTraceTransfer()) : null;
-      log.debug(">>>>>> [{}] GET exist key: {}", key, size);
-      log.debug(">>>>>> [{}] GET key: {}", key, properties.getProperty(KEY));
+      log.info("GET exist key: {}", size);
+      log.info("GET key: {}", properties.getProperty(KEY));
       if (Boolean.FALSE.equals(size)) {
-        log.debug(">>>>>> [{}] Else condition new traceTransfer between traceTransfer current. <<<<<<", key);
+        log.info("Else condition new traceTransfer between traceTransfer current.");
         String trace = newData.getTraceTransfer();
         Map<String, String> mapData = new HashMap<>();
         mapData.put(trace, data);
         String hashSet = jedis.hmset(properties.getProperty(KEY), mapData);
-        log.debug(">>>>>> [{}] Push data: [{}] with key: \"{}\" and field: \"{}\"",
-            key, hashSet, properties.getProperty(KEY), trace);
+        log.info("Push data: [{}] with key: \"{}\" and field: \"{}\"", hashSet, properties.getProperty(KEY), trace);
 
         if (!properties.getProperty(KEY).isEmpty()) {
           LocalDateTime date = LocalDateTime.now();
           int seconds = date.toLocalTime().toSecondOfDay();
           long expireDate = Long.parseLong(properties.getProperty("redis.expireAt")) - seconds;
-          log.debug(">>>>>> [{}] Get seconds expireDate: {}", key, expireDate);
+          log.info("Get seconds expireDate: {}", expireDate);
           jedis.expire(properties.getProperty(KEY), (int) expireDate);
           jedis.ttl(properties.getProperty(KEY));
         }
 
         response.getWriter().print(data);
-        log.debug(">>>>>> [{}] Done push data to Redis <<<<<<<", key);
+        log.info("Done push data to Redis");
       } else {
-        log.debug(">>>>>> [{}] Check if condition new key equal key current throw exception. <<<<<<", key);
+        log.info("Check if condition new key equal key current throw exception.");
         response.addHeader("content-type", "application/json");
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         new ObjectMapper().writeValue(response.getOutputStream(),
             new DataResponse(HttpServletResponse.SC_BAD_REQUEST, "TraceTransfer is already exist!!!"));
-        log.error(">>>>>> [{}] TraceTransfer is already exist. <<<<<<", key);
+        log.error("TraceTransfer is already exist.");
       }
 
     } catch (Exception e) {
-      log.error(">>>>>> [{}] Function store key exception: ", key, e);
+      log.error("Function store  exception:", e);
+      throw new ExceptionCentral(e);
     } finally {
-      closeJedis(jedis, key);
+      closeJedis(jedis);
     }
   }
 
-  public static String ping(long key) {
+  public static String ping() {
     Jedis jedis = null;
     try {
-      jedis = getJedis(key);
-      log.debug(">>>>>> [{}] Test API check connection ping: {}", key, jedis != null ? jedis.ping() : null);
+      jedis = getJedis();
+      log.info("Test API check connection ping: [{}]", jedis != null ? jedis.ping() : null);
       return jedis != null ? jedis.ping() : null;
     } catch (Exception e) {
-      log.error(">>>>>> [{}] Ping exception ", key, e);
+      log.error("Ping exception:", e);
+      throw new ExceptionCentral(e);
     } finally {
-      closeJedis(jedis, key);
+      closeJedis(jedis);
     }
-    return null;
   }
 }
