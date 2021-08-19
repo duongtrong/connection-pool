@@ -1,7 +1,9 @@
-package com.connection.api.service;
+package com.connection.api.service.rabbitmq;
 
+import com.connection.api.constants.ConstantsCentral;
 import com.connection.api.dto.ExchangeType;
 import com.connection.api.exception.ExceptionCentral;
+import com.connection.api.service.redis.RedisConnection;
 import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -15,12 +17,12 @@ import java.io.IOException;
 import java.util.Properties;
 
 @Log4j2
-public class RabbitMQClient {
+public class RabbitMQConnection {
 
   private static final Properties properties = new Properties();
   private static GenericObjectPool<Channel> pool;
 
-  public RabbitMQClient() {
+  public RabbitMQConnection() {
     initialLoadConfig();
     initialGenericObjectPoolConfig();
   }
@@ -28,26 +30,27 @@ public class RabbitMQClient {
   private static void initialGenericObjectPoolConfig() {
     ConnectionFactory connectionFactory = initialConnectionFactory();
     GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-    genericObjectPoolConfig.setMinIdle(Integer.parseInt(properties.getProperty("rabbitmq.minIdle")));
-    genericObjectPoolConfig.setMaxIdle(Integer.parseInt(properties.getProperty("rabbitmq.maxIdle")));
-    genericObjectPoolConfig.setMaxTotal(Integer.parseInt(properties.getProperty("rabbitmq.maxTotal")));
+    genericObjectPoolConfig.setMinIdle(Integer.parseInt(properties.getProperty(ConstantsCentral.RABBITMQ_MIN_IDLE.getValue())));
+    genericObjectPoolConfig.setMaxIdle(Integer.parseInt(properties.getProperty(ConstantsCentral.RABBITMQ_MAX_IDLE.getValue())));
+    genericObjectPoolConfig.setMaxTotal(Integer.parseInt(properties.getProperty(ConstantsCentral.RABBITMQ_MAX_TOTAL.getValue())));
     pool = new GenericObjectPool<>(new RabbitMQChannelFactory(createConnection(connectionFactory)), genericObjectPoolConfig);
   }
 
   private static ConnectionFactory initialConnectionFactory() {
     ConnectionFactory connectionFactory = new ConnectionFactory();
-    connectionFactory.setUsername(properties.getProperty("rabbitmq.username"));
-    connectionFactory.setPassword(properties.getProperty("rabbitmq.password"));
-    connectionFactory.setHost(properties.getProperty("rabbitmq.hostname"));
-    connectionFactory.setPort(Integer.parseInt(properties.getProperty("rabbitmq.port")));
+    connectionFactory.setPort(Integer.parseInt(properties.getProperty(ConstantsCentral.RABBITMQ_PORT.getValue())));
+    connectionFactory.setUsername(properties.getProperty(ConstantsCentral.RABBITMQ_USERNAME.getValue()));
+    connectionFactory.setPassword(properties.getProperty(ConstantsCentral.RABBITMQ_PASSWORD.getValue()));
+    connectionFactory.setHost(properties.getProperty(ConstantsCentral.RABBITMQ_HOSTNAME.getValue()));
     return connectionFactory;
   }
 
   private static void initialLoadConfig() {
     try {
-      properties.load(RedisConnection.class.getClassLoader().getResourceAsStream("center.properties"));
+      properties.load(RedisConnection.class.getClassLoader().getResourceAsStream(ConstantsCentral.APPLICATION.getValue()));
     } catch (IOException e) {
       log.error("Initial load config has ex: ", e);
+      throw new ExceptionCentral(e);
     }
   }
 
@@ -95,6 +98,7 @@ public class RabbitMQClient {
     try {
       return factory.newConnection();
     } catch (Exception e) {
+      log.error("Create connection has ex:", e);
       throw new ExceptionCentral(e);
     }
   }
@@ -103,6 +107,7 @@ public class RabbitMQClient {
     try {
       return new PoolableChannel(pool.borrowObject(), pool);
     } catch (Exception e) {
+      log.error("Create channel has ex:", e);
       throw new ExceptionCentral(e);
     }
   }

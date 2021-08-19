@@ -1,4 +1,4 @@
-package com.connection.api.service;
+package com.connection.api.service.rabbitmq;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

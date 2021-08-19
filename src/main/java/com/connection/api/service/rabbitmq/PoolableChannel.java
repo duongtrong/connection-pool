@@ -1,4 +1,4 @@
-package com.connection.api.service;
+package com.connection.api.service.rabbitmq;
 
 import com.connection.api.exception.ExceptionCentral;
 import com.rabbitmq.client.AMQP;

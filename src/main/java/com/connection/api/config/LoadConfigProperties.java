@@ -27,7 +27,7 @@
 //  @Override
 //  @SneakyThrows
 //  public void contextInitialized(ServletContextEvent sce) {
-//    PropertiesConfiguration property = new PropertiesConfiguration(new File("src/main/resources/center.properties"));
+//    PropertiesConfiguration property = new PropertiesConfiguration(new File("src/main/resources/application.properties"));
 //    property.setReloadingStrategy(new FileChangedReloadingStrategy());
 //    final ExecutorService threadPool = Executors.newFixedThreadPool(1);
 //    threadPool.execute(() -> {
