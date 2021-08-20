@@ -29,7 +29,6 @@ public enum ConstantsCentral {
   REDIS_WHILE_IDLE("redis.testWhileIdle"),
   REDIS_TIMEOUT("redis.timeOut"),
 
-  ORACLE_SID("oracle.sid"),
   ORACLE_HOSTNAME("oracle.host"),
   ORACLE_PORT("oracle.port"),
   ORACLE_USERNAME("oracle.username"),

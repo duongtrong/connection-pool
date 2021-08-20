@@ -33,21 +33,17 @@ public class DatabaseConnection {
 
   private static void initDatabaseSource() {
     HikariConfig hikariConfig = new HikariConfig();
+    hikariConfig.setJdbcUrl(properties.getProperty(ConstantsCentral.ORACLE_URL.getValue()));
     hikariConfig.setUsername(properties.getProperty(ConstantsCentral.ORACLE_USERNAME.getValue()));
     hikariConfig.setPassword(properties.getProperty(ConstantsCentral.ORACLE_PASSWORD.getValue()));
-    hikariConfig.setDriverClassName(properties.getProperty(ConstantsCentral.ORACLE_DRIVER.getValue()));
-    hikariConfig.setAutoCommit(Boolean.parseBoolean(properties.getProperty(ConstantsCentral.ORACLE_AUTO_COMMIT.getValue())));
     hikariConfig.setPoolName(properties.getProperty(ConstantsCentral.ORACLE_POOL_NAME.getValue()));
-    hikariConfig.setMaximumPoolSize(Integer.parseInt(properties.getProperty(ConstantsCentral.ORACLE_MAX_POOL.getValue())));
+    hikariConfig.setDriverClassName(properties.getProperty(ConstantsCentral.ORACLE_DRIVER.getValue()));
     hikariConfig.setMinimumIdle(Integer.parseInt(properties.getProperty(ConstantsCentral.ORACLE_MIN_IDLE.getValue())));
     hikariConfig.setMaxLifetime(Long.parseLong(properties.getProperty(ConstantsCentral.ORACLE_MAX_LIFETIME.getValue())));
     hikariConfig.setIdleTimeout(Long.parseLong(properties.getProperty(ConstantsCentral.ORACLE_IDLE_TIMEOUT.getValue())));
+    hikariConfig.setMaximumPoolSize(Integer.parseInt(properties.getProperty(ConstantsCentral.ORACLE_MAX_POOL.getValue())));
+    hikariConfig.setAutoCommit(Boolean.parseBoolean(properties.getProperty(ConstantsCentral.ORACLE_AUTO_COMMIT.getValue())));
     hikariConfig.setConnectionTimeout(Long.parseLong(properties.getProperty(ConstantsCentral.ORACLE_CONNECTION_TIMEOUT.getValue())));
-
-    hikariConfig.setJdbcUrl(properties.getProperty(ConstantsCentral.ORACLE_URL.getValue()) +
-        properties.getProperty(ConstantsCentral.ORACLE_HOSTNAME.getValue()) + ":" +
-        properties.getProperty(ConstantsCentral.ORACLE_PORT.getValue()) + ":" +
-        properties.getProperty(ConstantsCentral.ORACLE_SID.getValue()));
 
     hikariConfig.addDataSourceProperty(ConstantsCentral.ORACLE_PRE_STATEMENT.getNameKey(), properties.getProperty(ConstantsCentral.ORACLE_PRE_STATEMENT.getValue()));
     hikariConfig.addDataSourceProperty(ConstantsCentral.ORACLE_CACHE_SIZE.getNameKey(), properties.getProperty(ConstantsCentral.ORACLE_CACHE_SIZE.getValue()));
@@ -57,6 +53,7 @@ public class DatabaseConnection {
   }
 
   public Connection getConnection() throws SQLException {
+    log.info("Begin get connection to HikariCP.");
     return hikariDataSource.getConnection();
   }
 }

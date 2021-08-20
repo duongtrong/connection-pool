@@ -1,7 +1,6 @@
 package com.connection.api.controller;
 
-import com.connection.api.dto.Test;
-import com.connection.api.exception.ExceptionCentral;
+import com.connection.api.dto.Data;
 import com.connection.api.service.database.DatabaseService;
 import com.connection.api.util.HttpUtil;
 import lombok.extern.log4j.Log4j2;
@@ -47,8 +46,8 @@ public class OracleController extends HttpServlet {
       resp.setContentType("application/json");
 
       String string = req.getReader().lines().collect(Collectors.joining());
-      Test data = HttpUtil.of(string).toModel(Test.class);
-      databaseService.insert(resp, data);
+      Data data = HttpUtil.of(string).toModel(Data.class);
+      databaseService.insertData(resp, data);
     } catch (IOException e) {
       log.error("Insert to database has ex:", e);
       handleException(resp, e);

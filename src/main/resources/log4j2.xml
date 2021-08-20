@@ -11,13 +11,13 @@
         <RollingFile
                 name="rollBySizeInfo"
                 fileName="${FILE_NAME}/connection.log"
-                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection.%i.log" append="true">
+                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection.%i.log">
             <LevelRangeFilter minLevel="INFO" maxLevel="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${PATTERN}"/>
             <Policies>
 <!--                <OnStartupTriggeringPolicy />-->
-                <TimeBasedTriggeringPolicy />
-                <SizeBasedTriggeringPolicy size="20GB"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>
@@ -29,8 +29,8 @@
             <PatternLayout pattern="${PATTERN}"/>
             <Policies>
 <!--                <OnStartupTriggeringPolicy />-->
-                <TimeBasedTriggeringPolicy />
-                <SizeBasedTriggeringPolicy size="20GB"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>

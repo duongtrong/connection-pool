@@ -1,10 +1,8 @@
 package com.connection.api.service.rabbitmq;
 
 import com.connection.api.constants.ConstantsCentral;
-import com.connection.api.dto.ExchangeType;
 import com.connection.api.exception.ExceptionCentral;
 import com.connection.api.service.redis.RedisConnection;
-import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -54,26 +52,11 @@ public class RabbitMQConnection {
     }
   }
 
-  public void declareExchange(String exchange, Boolean durable) {
+  public void declareQueue(String queue) {
     PoolableChannel channel = channel();
     try {
-      AMQP.Exchange.DeclareOk ok = channel.exchangeDeclare(exchange, ExchangeType.FANOUT.getExchangeName(), durable);
-      log.info("Channel exchangeDeclare: {}", ok);
-    } catch (IOException e) {
-      channel.setValid(false);
-      throw new ExceptionCentral(e);
-    } finally {
-      channel.close();
-    }
-  }
-
-  public void declareQueue(String exchange, String queue) {
-    PoolableChannel channel = channel();
-    try {
-      AMQP.Queue.DeclareOk queueDeclare = channel.queueDeclare(queue, true, false, false, ImmutableMap.of());
+      AMQP.Queue.DeclareOk queueDeclare = channel.queueDeclare(queue, true, false, false, null);
       log.info("Channel queue declare: {} ", queueDeclare);
-      AMQP.Queue.BindOk routingKey = channel.queueBind(queue, exchange, "");
-      log.info("Channel bind a queue to an exchange: {} ", routingKey);
     } catch (IOException e) {
       channel.setValid(false);
       throw new ExceptionCentral(e);
@@ -82,10 +65,10 @@ public class RabbitMQConnection {
     }
   }
 
-  public void publish(String exchange, byte[] message) {
+  public void publish(String exchange, String queue, byte[] message) {
     PoolableChannel channel = channel();
     try {
-      channel.basicPublish(exchange, "", null, message);
+      channel.basicPublish(exchange, queue, null, message);
     } catch (IOException e) {
       channel.setValid(false);
       throw new ExceptionCentral(e);
