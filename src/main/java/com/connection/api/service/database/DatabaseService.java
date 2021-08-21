@@ -1,6 +1,8 @@
 package com.connection.api.service.database;
 
+import com.connection.api.constants.ExecuteQuery;
 import com.connection.api.dto.Data;
+import com.connection.api.dto.Test;
 import com.connection.api.exception.ExceptionCentral;
 import lombok.extern.log4j.Log4j2;
 
@@ -11,6 +13,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 
 import static com.connection.api.util.HandleUtil.handleException;
 
@@ -40,6 +44,7 @@ public class DatabaseService {
         data.setAmount(Integer.parseInt(resultSet.getString("AMOUNT")));
         data.setStatus(resultSet.getString("STATUS"));
         data.setRescode(resultSet.getString("RESCODE"));
+        data.setBankCode(resultSet.getString("BANKCODE"));
         data.setTranxNote(resultSet.getString("TRANXNOTE"));
         data.setTranxDate(resultSet.getString("TRANXDATE"));
         data.setTipAndFee(resultSet.getString("TIPANDFEE"));
@@ -54,10 +59,11 @@ public class DatabaseService {
         data.setQrVersion(resultSet.getString("QRVERSION"));
         data.setMobile(resultSet.getString("MOBILE"));
         data.setRespCode(resultSet.getString("RESPCODE"));
+        data.setRespDesc(resultSet.getString("RESPDESC"));
         data.setTraceTransfer(resultSet.getString("TRACETRANSFER"));
         data.setMessageType(resultSet.getString("MESSAGETYPE"));
         data.setDebitAmount(resultSet.getString("DEBITAMOUNT"));
-        data.setPayType(resultSet.getString("PAYDATE"));
+        data.setPayDate(resultSet.getString("PAYDATE"));
         data.setRealAmount(resultSet.getString("REALAMOUNT"));
         data.setPromotionCode(resultSet.getString("PROMOTIONCODE"));
         data.setUrl(resultSet.getString("URL"));
@@ -87,18 +93,17 @@ public class DatabaseService {
 
   public void insertData(HttpServletResponse response, Data data) {
     log.info("Begin get connection prepare statement insert to database");
-    String builder = "INSERT INTO (VN_DATA (USERNAME, CUSTOMERNAME, TRANXID, MOBILENO, ACCOUNTNO, CUSNAME, AMOUNT," +
-        "STATUS, RESCODE, BANKCODE, TRANXNOTE, TRANXDATE, TIPANDFEE, TYPE, QRINFO, ORDERCODE, PAYTYPE, QUANTITY," +
-        "ADDTIONALDATA, MERCHANTNAME, CHECKSUM, QRVERSION, MOBILE, RESPCODE, TRACETRANSFER, MESSAGETYPE, DEBITAMOUNT, PAYDATE," +
-        "REALAMOUNT, PROMOTIONCODE, URL, MOBILEID, CLIENTID, DEVICE, IPADDRESS, IMEI, TOTALAMOUNT, FEEAMOUNT, PCTIME," +
-        "TELLERID, TELLERBRANCH, HOSTDATE, TYPESOURCE, BANKCARD) " +
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
-        "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    String builder = "{ call insertData(vn_data_seq.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
+        " ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
+        "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    Statement statement = null;
     Connection connection = null;
     PreparedStatement preparedStatement = null;
-    CallableStatement callableStatement = null;
     try {
       connection = databaseConnection.getConnection();
+      statement = connection.createStatement();
+      statement.execute(ExecuteQuery.INSERT_DATA);
+
       preparedStatement = connection.prepareStatement(builder);
       preparedStatement.setString(1, data.getUserName());
       preparedStatement.setInt(2, data.getAmount());
@@ -124,26 +129,27 @@ public class DatabaseService {
       preparedStatement.setString(22, data.getQrVersion());
       preparedStatement.setString(23, data.getMobile());
       preparedStatement.setString(24, data.getRespCode());
-      preparedStatement.setString(25, data.getTraceTransfer());
-      preparedStatement.setString(26, data.getMessageType());
-      preparedStatement.setString(27, data.getDebitAmount());
-      preparedStatement.setString(28, data.getPayDate());
-      preparedStatement.setString(29, data.getRealAmount());
-      preparedStatement.setString(30, data.getPromotionCode());
-      preparedStatement.setString(31, data.getUrl());
-      preparedStatement.setString(32, data.getMobileId());
-      preparedStatement.setString(33, data.getClientId());
-      preparedStatement.setString(34, data.getDevice());
-      preparedStatement.setString(35, data.getIpAddress());
-      preparedStatement.setString(36, data.getImei());
-      preparedStatement.setString(37, data.getTotalAmount());
-      preparedStatement.setString(38, data.getFeeAmount());
-      preparedStatement.setString(39, data.getPcTime());
-      preparedStatement.setString(40, data.getTellerId());
-      preparedStatement.setString(41, data.getTellerBranch());
-      preparedStatement.setString(42, data.getHostDate());
-      preparedStatement.setString(43, data.getTypeSource());
-      preparedStatement.setString(44, data.getBankCard());
+      preparedStatement.setString(25, data.getRespDesc());
+      preparedStatement.setString(26, data.getTraceTransfer());
+      preparedStatement.setString(27, data.getMessageType());
+      preparedStatement.setString(28, data.getDebitAmount());
+      preparedStatement.setString(29, data.getPayDate());
+      preparedStatement.setString(30, data.getRealAmount());
+      preparedStatement.setString(31, data.getPromotionCode());
+      preparedStatement.setString(32, data.getUrl());
+      preparedStatement.setString(33, data.getMobileId());
+      preparedStatement.setString(34, data.getClientId());
+      preparedStatement.setString(35, data.getDevice());
+      preparedStatement.setString(36, data.getIpAddress());
+      preparedStatement.setString(37, data.getImei());
+      preparedStatement.setString(38, data.getTotalAmount());
+      preparedStatement.setString(39, data.getFeeAmount());
+      preparedStatement.setString(40, data.getPcTime());
+      preparedStatement.setString(41, data.getTellerId());
+      preparedStatement.setString(42, data.getTellerBranch());
+      preparedStatement.setString(43, data.getHostDate());
+      preparedStatement.setString(44, data.getTypeSource());
+      preparedStatement.setString(45, data.getBankCard());
       int execute = preparedStatement.executeUpdate();
       log.info("Execute update: {}", execute);
       if (execute != 0) {
@@ -155,13 +161,61 @@ public class DatabaseService {
       handleException(response, e);
       throw new ExceptionCentral(e);
     } finally {
+      closeStatement(response, statement);
       closeConnection(response, connection);
-      closeStatement(response, preparedStatement);
+      closeCallStatement(response, preparedStatement);
     }
     log.info("End get connection prepare statement insert to database");
   }
 
-  private void closeStatement(HttpServletResponse response, PreparedStatement statement) {
+  public void insert(HttpServletResponse response, Test test) {
+    log.info("Begin get connection prepare statement insert to database");
+
+    String builder = "{ call insertTest(vn_test_seq.nextval, ?, ?, ?, ?) }";
+
+    Connection connection = null;
+    Statement statement = null;
+    CallableStatement callableStatement = null;
+
+    try {
+      connection = databaseConnection.getConnection();
+
+      statement = connection.createStatement();
+      statement.execute(ExecuteQuery.INSERT_TEST);
+
+      callableStatement = connection.prepareCall(builder);
+      callableStatement.setString(1, test.getTestName());
+      callableStatement.setString(2, test.getDescription());
+      callableStatement.setString(3, test.getRollName());
+      callableStatement.registerOutParameter(4, Types.VARCHAR);
+
+      int execute = callableStatement.executeUpdate();
+      log.info("Execute update: {}", execute);
+      response.getWriter().print(test);
+    } catch (SQLException | IOException e) {
+      log.error("Insert test to database has ex:", e);
+      handleException(response, e);
+      throw new ExceptionCentral(e);
+    } finally {
+      closeConnection(response, connection);
+      closeStatement(response, statement);
+      closeCallStatement(response, callableStatement);
+    }
+    log.info("End get connection prepare statement insert to database");
+  }
+
+  private void closeCallStatement(HttpServletResponse response, PreparedStatement statement) {
+    if (statement != null) {
+      try {
+        statement.close();
+      } catch (SQLException e) {
+        log.error("Close prepare statement has ex:", e);
+        handleException(response, e);
+      }
+    }
+  }
+
+  private void closeStatement(HttpServletResponse response, Statement statement) {
     if (statement != null) {
       try {
         statement.close();

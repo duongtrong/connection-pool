@@ -3,7 +3,6 @@ package com.connection.api.dto;
 import com.google.gson.Gson;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class Data implements Serializable {
   private String userName;
@@ -20,7 +19,6 @@ public class Data implements Serializable {
   private String tranxDate;
   private String tipAndFee;
   private String type;
-  private List<Item> item;
   private String qrInfo;
   private String orderCode;
   private String payType;
@@ -55,7 +53,7 @@ public class Data implements Serializable {
 
   public Data(String userName, String customerName, String tranxId, String mobileNo, String accountNo, String cusName,
               Integer amount, String status, String rescode, String bankCode, String tranxNote, String tranxDate,
-              String tipAndFee, String type, List<Item> item, String qrInfo, String orderCode, String payType,
+              String tipAndFee, String type, String qrInfo, String orderCode, String payType,
               String quantity, String addtionalData, String merchantName, String checkSum, String qrVersion,
               String mobile, String respCode, String respDesc, String traceTransfer, String messageType,
               String debitAmount, String payDate, String realAmount, String promotionCode, String url,
@@ -76,7 +74,6 @@ public class Data implements Serializable {
     this.tranxDate = tranxDate;
     this.tipAndFee = tipAndFee;
     this.type = type;
-    this.item = item;
     this.qrInfo = qrInfo;
     this.orderCode = orderCode;
     this.payType = payType;
@@ -223,14 +220,6 @@ public class Data implements Serializable {
 
   public void setType(String type) {
     this.type = type;
-  }
-
-  public List<Item> getItem() {
-    return item;
-  }
-
-  public void setItem(List<Item> item) {
-    this.item = item;
   }
 
   public String getQrInfo() {
