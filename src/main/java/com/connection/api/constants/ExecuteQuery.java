@@ -25,12 +25,12 @@ public final class ExecuteQuery {
       "end;";
 
   public static final String INSERT_DATA = "CREATE OR REPLACE PROCEDURE insertData\n" +
-      "    (\n" +
-      "    IN_DATA_ID IN VN_DATA.DATA_ID%TYPE,\n" +
+      "    (IN_DATA_ID IN VN_DATA.DATA_ID%TYPE,\n" +
       "    IN_USERNAME IN VN_DATA.USERNAME%TYPE,\n" +
       "    IN_CUSTOMERNAME IN VN_DATA.CUSTOMERNAME%TYPE,\n" +
       "    IN_TRANXID IN VN_DATA.TRANXID%TYPE,\n" +
       "    IN_MOBILENO IN VN_DATA.MOBILENO%TYPE,\n" +
+      "    IN_ACCOUNTNO IN VN_DATA.ACCOUNTNO%TYPE,\n" +
       "    IN_CUSNAME IN VN_DATA.CUSNAME%TYPE,\n" +
       "    IN_AMOUNT IN VN_DATA.AMOUNT%TYPE,\n" +
       "    IN_STATUS IN VN_DATA.STATUS%TYPE,\n" +
@@ -73,7 +73,7 @@ public final class ExecuteQuery {
       "    IN_BANKCARD IN VN_DATA.BANKCARD%TYPE,\n" +
       "    out_result OUT VARCHAR2)\n" +
       "AS BEGIN\n" +
-      "    INSERT INTO VN_DATA (DATA_ID, USERNAME, CUSTOMERNAME, TRANXID, MOBILENO, CUSNAME, AMOUNT,\n" +
+      "    INSERT INTO VN_DATA (DATA_ID, USERNAME, CUSTOMERNAME, TRANXID, MOBILENO, ACCOUNTNO, CUSNAME, AMOUNT,\n" +
       "                         STATUS, RESCODE, BANKCODE, TRANXNOTE, TRANXDATE, TIPANDFEE, \"TYPE\",\n" +
       "                         QRINFO, ORDERCODE, PAYTYPE, QUANTITY, ADDTIONALDATA, MERCHANTNAME,\n" +
       "                         CHECKSUM, QRVERSION, MOBILE, RESPCODE, RESPDESC, TRACETRANSFER, MESSAGETYPE,\n" +
@@ -81,7 +81,7 @@ public final class ExecuteQuery {
       "                         IPADDRESS, IMEI, TOTALAMOUNT, FEEAMOUNT, PCTIME, TELLERID, TELLERBRANCH, HOSTDATE,\n" +
       "                         TYPESOURCE, BANKCARD)\n" +
       "                         VALUES (IN_DATA_ID, IN_USERNAME, IN_CUSTOMERNAME, IN_TRANXID,\n" +
-      "                                 IN_MOBILENO, IN_CUSNAME, IN_AMOUNT, IN_STATUS,\n" +
+      "                                 IN_MOBILENO, IN_ACCOUNTNO, IN_CUSNAME, IN_AMOUNT, IN_STATUS,\n" +
       "                                 IN_RESCODE, IN_BANKCODE, IN_TRANXNOTE, IN_TRANXDATE,\n" +
       "                                 IN_TIPANDFEE, IN_TYPE, IN_QRINFO, IN_ORDERCODE,\n" +
       "                                 IN_PAYTYPE, IN_QUANTITY, IN_ADDTIONALDATA, IN_MERCHANTNAME,\n" +

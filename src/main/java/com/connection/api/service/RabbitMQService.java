@@ -1,4 +1,4 @@
-package com.connection.api.service.rabbitmq;
+package com.connection.api.service;
 
 import com.connection.api.constants.ConstantsCentral;
 import com.connection.api.exception.ExceptionCentral;
@@ -21,7 +21,7 @@ public class RabbitMQService {
     try {
       properties.load(RabbitMQService.class.getClassLoader().getResourceAsStream(ConstantsCentral.APPLICATION.getValue()));
       rabbitMQConnection.declareQueue(properties.getProperty(ConstantsCentral.RABBITMQ_QUEUE.getValue()));
-      rabbitMQConnection.publish("", properties.getProperty(ConstantsCentral.RABBITMQ_QUEUE.getValue()), data.getBytes(StandardCharsets.UTF_8));
+      rabbitMQConnection.publish(properties.getProperty(ConstantsCentral.RABBITMQ_QUEUE.getValue()), data.getBytes(StandardCharsets.UTF_8));
       log.info("Publish success check RabbitMQ CLI");
     } catch (Exception e) {
       log.error("Function connection and publish rabbitmq has ex: ", e);

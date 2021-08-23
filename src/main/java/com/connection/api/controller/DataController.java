@@ -1,8 +1,8 @@
 package com.connection.api.controller;
 
-import com.connection.api.exception.ExceptionCentral;
-import com.connection.api.service.rabbitmq.RabbitMQService;
-import com.connection.api.service.redis.RedisService;
+import com.connection.api.constants.ResponseConstants;
+import com.connection.api.constants.ResponseExecute;
+import com.connection.api.service.RabbitMQService;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.ThreadContext;
 
@@ -20,7 +20,6 @@ import static com.connection.api.util.HandleUtil.handleException;
 public class DataController extends HttpServlet {
 
   private final RabbitMQService rabbitMQService = new RabbitMQService();
-  private final RedisService redisService = new RedisService();
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
@@ -35,9 +34,7 @@ public class DataController extends HttpServlet {
 
       rabbitMQService.publishMessageInRabbitMQ(data, resp);
 
-      log.info("Request access and store to Redis");
-      redisService.storeKeyValueInRedis(data, resp);
-
+      resp.getWriter().println(new ResponseExecute(ResponseConstants.SUCCESS.getCode(), ResponseConstants.SUCCESS.getMessage()));
     } catch (IOException e) {
       log.error("Request API exception:", e);
       handleException(resp, e);

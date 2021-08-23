@@ -1,8 +1,7 @@
-package com.connection.api.service.rabbitmq;
+package com.connection.api.service;
 
 import com.connection.api.constants.ConstantsCentral;
 import com.connection.api.exception.ExceptionCentral;
-import com.connection.api.service.redis.RedisConnection;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -45,7 +44,7 @@ public class RabbitMQConnection {
 
   private static void initialLoadConfig() {
     try {
-      properties.load(RedisConnection.class.getClassLoader().getResourceAsStream(ConstantsCentral.APPLICATION.getValue()));
+      properties.load(RabbitMQConnection.class.getClassLoader().getResourceAsStream(ConstantsCentral.APPLICATION.getValue()));
     } catch (IOException e) {
       log.error("Initial load config has ex: ", e);
       throw new ExceptionCentral(e);
@@ -65,10 +64,10 @@ public class RabbitMQConnection {
     }
   }
 
-  public void publish(String exchange, String queue, byte[] message) {
+  public void publish(String queue, byte[] message) {
     PoolableChannel channel = channel();
     try {
-      channel.basicPublish(exchange, queue, null, message);
+      channel.basicPublish("", queue, null, message);
     } catch (IOException e) {
       channel.setValid(false);
       throw new ExceptionCentral(e);
