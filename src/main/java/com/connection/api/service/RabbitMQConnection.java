@@ -2,16 +2,23 @@ package com.connection.api.service;
 
 import com.connection.api.constants.ConstantsCentral;
 import com.connection.api.exception.ExceptionCentral;
-import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.logging.log4j.ThreadContext;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+import static com.connection.api.util.HandleUtil.handleException;
 
 @Log4j2
 public class RabbitMQConnection {
@@ -60,10 +67,11 @@ public class RabbitMQConnection {
     }
   }
 
-  public void declareExchange(String exchange) {
-    PoolableChannel channel = channel();
+  public void declareExchange(String queue, String exchange, String routingKey) {
+    RabbitMQPoolableChannel channel = channel();
     try {
-      channel.exchangeDeclare(exchange, "direct", false);
+      channel.exchangeDeclare(exchange, BuiltinExchangeType.DIRECT, true);
+      channel.queueBind(queue, exchange, routingKey);
     } catch (IOException e) {
       channel.setValid(false);
       log.error("Declare exchange has ex:", e);
@@ -73,12 +81,52 @@ public class RabbitMQConnection {
     }
   }
 
-  public void declareQueue(String queue) {
-    PoolableChannel channel = channel();
+  public String publishService(String queue, String replyQueue, String exchange,
+                               byte[] body, HttpServletResponse response) {
+    RabbitMQPoolableChannel channel = channel();
     try {
-      AMQP.Queue.DeclareOk queueDeclare = channel.queueDeclare(queue, true, false, false, null);
-      log.info("Channel queue declare: {} ", queueDeclare);
-      channel.basicQos(1);
+      channel.basicPublish(exchange, queue, null, body);
+      return receiverConsumer(replyQueue);
+    } catch (IOException e) {
+      log.error("Function publish service has ex:", e);
+      handleException(response, e);
+      throw new ExceptionCentral(e);
+    }
+  }
+
+  private String receiverConsumer(String replyQueue) {
+    RabbitMQPoolableChannel channel = channel();
+    final String[] message = {null};
+    try {
+      final BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
+      channel.basicConsume(replyQueue, true, (consumerTag, delivery) -> {
+        ThreadContext.put("tokenKey", String.valueOf(System.currentTimeMillis()));
+        log.info("Begin receiver consumer message API RabbitMQ Server");
+        while (true) {
+          message[0] = new String(delivery.getBody(), StandardCharsets.UTF_8);
+          boolean offer = blockingQueue.offer(message[0]);
+          log.info("Blocking queue offer: {}", offer);
+          if (offer) {
+            break;
+          }
+        }
+        log.info("End receiver consumer handle message API RabbitMQ Server");
+        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+      }, consumerTag -> {
+      });
+      return blockingQueue.take();
+    } catch (IOException | InterruptedException e) {
+      log.error("Init consumer has ex:", e);
+      Thread.currentThread().interrupt();
+      throw new ExceptionCentral(e);
+    }
+  }
+
+  public void declareQueue(String queue, String replyQueue) {
+    RabbitMQPoolableChannel channel = channel();
+    try {
+      channel.queueDeclare(queue, true, false, false, null);
+      channel.queueDeclare(replyQueue, true, false, false, null);
     } catch (IOException e) {
       channel.setValid(false);
       throw new ExceptionCentral(e);
@@ -88,7 +136,7 @@ public class RabbitMQConnection {
   }
 
   public void publish(String queue, byte[] message) {
-    PoolableChannel channel = channel();
+    RabbitMQPoolableChannel channel = channel();
     try {
       channel.basicPublish("", queue, null, message);
     } catch (IOException e) {
@@ -99,9 +147,9 @@ public class RabbitMQConnection {
     }
   }
 
-  public PoolableChannel channel() {
+  public RabbitMQPoolableChannel channel() {
     try {
-      return new PoolableChannel(pool.borrowObject(), pool);
+      return new RabbitMQPoolableChannel(pool.borrowObject(), pool);
     } catch (Exception e) {
       log.error("Create channel has ex:", e);
       throw new ExceptionCentral(e);

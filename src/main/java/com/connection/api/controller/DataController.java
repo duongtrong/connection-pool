@@ -1,6 +1,6 @@
 package com.connection.api.controller;
 
-import com.connection.api.service.RabbitMQService;
+import com.connection.api.service.RabbitMQPublishService;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.ThreadContext;
 
@@ -17,7 +17,7 @@ import static com.connection.api.util.HandleUtil.handleException;
 @WebServlet(urlPatterns = "/api/v1/data", displayName = "dataServlet")
 public class DataController extends HttpServlet {
 
-  private final RabbitMQService rabbitMQService = new RabbitMQService();
+  private final RabbitMQPublishService rabbitMQPublishService = new RabbitMQPublishService();
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
@@ -30,7 +30,7 @@ public class DataController extends HttpServlet {
       String data = req.getReader().lines().collect(Collectors.joining());
       log.info("Request connection access to RabbitMQ!!!");
 
-      rabbitMQService.publishMessageInRabbitMQ(data, resp);
+      rabbitMQPublishService.publishMessageInRabbitMQ(data, resp);
 
     } catch (IOException e) {
       log.error("Request API exception:", e);

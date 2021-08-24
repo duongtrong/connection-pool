@@ -25,13 +25,13 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
-public class PoolableChannel implements Channel {
+public class RabbitMQPoolableChannel implements Channel {
   private final Channel delegate;
   private final ObjectPool<Channel> pool;
   private boolean valid = true;
   private boolean closed = false;
 
-  public PoolableChannel(Channel delegate, ObjectPool<Channel> pool) {
+  public RabbitMQPoolableChannel(Channel delegate, ObjectPool<Channel> pool) {
     this.delegate = delegate;
     this.pool = pool;
   }
