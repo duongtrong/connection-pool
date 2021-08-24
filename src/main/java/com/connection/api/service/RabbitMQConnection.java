@@ -51,11 +51,34 @@ public class RabbitMQConnection {
     }
   }
 
+  private static Connection createConnection(ConnectionFactory factory) {
+    try {
+      return factory.newConnection();
+    } catch (Exception e) {
+      log.error("Create connection has ex:", e);
+      throw new ExceptionCentral(e);
+    }
+  }
+
+  public void declareExchange(String exchange) {
+    PoolableChannel channel = channel();
+    try {
+      channel.exchangeDeclare(exchange, "direct", false);
+    } catch (IOException e) {
+      channel.setValid(false);
+      log.error("Declare exchange has ex:", e);
+      throw new ExceptionCentral(e);
+    } finally {
+      channel.close();
+    }
+  }
+
   public void declareQueue(String queue) {
     PoolableChannel channel = channel();
     try {
       AMQP.Queue.DeclareOk queueDeclare = channel.queueDeclare(queue, true, false, false, null);
       log.info("Channel queue declare: {} ", queueDeclare);
+      channel.basicQos(1);
     } catch (IOException e) {
       channel.setValid(false);
       throw new ExceptionCentral(e);
@@ -73,15 +96,6 @@ public class RabbitMQConnection {
       throw new ExceptionCentral(e);
     } finally {
       channel.close();
-    }
-  }
-
-  private static Connection createConnection(ConnectionFactory factory) {
-    try {
-      return factory.newConnection();
-    } catch (Exception e) {
-      log.error("Create connection has ex:", e);
-      throw new ExceptionCentral(e);
     }
   }
 

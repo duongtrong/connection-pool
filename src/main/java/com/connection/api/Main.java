@@ -1,38 +1,32 @@
-//package com.connection.api;
-//
-//import org.apache.commons.configuration.ConfigurationException;
-//import org.apache.commons.configuration.PropertiesConfiguration;
-//import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
-//
-//import java.io.File;
-//import java.util.Iterator;
-//import java.util.concurrent.ExecutorService;
-//import java.util.concurrent.Executors;
-//
-//public class Main {
-//
-//  public static void main(String[] args) throws ConfigurationException {
-//    PropertiesConfiguration property = new PropertiesConfiguration(new File("src/main/resources/test.properties"));
-//    property.setReloadingStrategy(new FileChangedReloadingStrategy());
-//    final ExecutorService threadPool = Executors.newFixedThreadPool(2);
-//    threadPool.execute(() -> {
-//      try {
-//        while (true) {
-//          Thread.sleep(4000);
-//          load(property);
-//        }
-//      } catch (Exception e) {
-//        e.printStackTrace();
-//        Thread.currentThread().interrupt();
-//      }
-//    });
-//  }
-//
-//  public static synchronized void load(PropertiesConfiguration property) {
-//    final Iterator<String> i = property.getKeys();
-//    while (i.hasNext()) {
-//      String key = i.next();
-//      System.out.println("DAY LA KEY: " + key + ", DAY LA VALUE: " + property.getString(key));
-//    }
-//  }
-//}
+package com.connection.api;
+
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.RpcClient;
+
+public class Main {
+
+  public static void main(String[] args) {
+    try {
+      String request = (args.length > 0) ? args[0] : "Rabbit";
+      String hostName = (args.length > 1) ? args[1] : "localhost";
+      int portNumber = (args.length > 2) ? Integer.parseInt(args[2]) : AMQP.PROTOCOL.PORT;
+
+      ConnectionFactory cfconn = new ConnectionFactory();
+      cfconn.setHost(hostName);
+      cfconn.setPort(portNumber);
+      Connection conn = cfconn.newConnection();
+      Channel ch = conn.createChannel();
+      RpcClient service = new RpcClient(ch, "", "Hello");
+
+      System.out.println(service.stringCall(request));
+      conn.close();
+    } catch (Exception e) {
+      System.err.println("Main thread caught exception: " + e);
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
+}

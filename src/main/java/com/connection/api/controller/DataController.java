@@ -1,7 +1,5 @@
 package com.connection.api.controller;
 
-import com.connection.api.constants.ResponseConstants;
-import com.connection.api.constants.ResponseExecute;
 import com.connection.api.service.RabbitMQService;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.ThreadContext;
@@ -34,7 +32,6 @@ public class DataController extends HttpServlet {
 
       rabbitMQService.publishMessageInRabbitMQ(data, resp);
 
-      resp.getWriter().println(new ResponseExecute(ResponseConstants.SUCCESS.getCode(), ResponseConstants.SUCCESS.getMessage()));
     } catch (IOException e) {
       log.error("Request API exception:", e);
       handleException(resp, e);
