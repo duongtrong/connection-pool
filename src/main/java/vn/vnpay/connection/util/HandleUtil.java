@@ -1,6 +1,6 @@
-package com.connection.api.util;
+package vn.vnpay.connection.util;
 
-import com.connection.api.exception.ExceptionCentral;
+import vn.vnpay.connection.exception.ExceptionCentral;
 import lombok.extern.log4j.Log4j2;
 import org.json.JSONException;
 import org.json.JSONObject;

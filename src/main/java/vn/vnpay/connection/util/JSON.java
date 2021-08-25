@@ -1,6 +1,6 @@
-package com.connection.api.util;
+package vn.vnpay.connection.util;
 
-import com.connection.api.exception.ExceptionCentral;
+import vn.vnpay.connection.exception.ExceptionCentral;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;

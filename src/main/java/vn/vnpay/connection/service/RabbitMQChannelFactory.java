@@ -1,4 +1,4 @@
-package com.connection.api.service;
+package vn.vnpay.connection.service;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

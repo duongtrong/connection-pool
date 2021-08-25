@@ -1,6 +1,6 @@
-package com.connection.api.service;
+package vn.vnpay.connection.service;
 
-import com.connection.api.exception.ExceptionCentral;
+import vn.vnpay.connection.exception.ExceptionCentral;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.CancelCallback;

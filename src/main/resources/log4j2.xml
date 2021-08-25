@@ -11,11 +11,10 @@
         <RollingFile
                 name="rollBySizeInfo"
                 fileName="${FILE_NAME}/connection.log"
-                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection.%i.log" append="true">
+                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection.log" append="true">
             <LevelRangeFilter minLevel="INFO" maxLevel="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${PATTERN}"/>
             <Policies>
-                <OnStartupTriggeringPolicy minSize="1"/>
                 <TimeBasedTriggeringPolicy interval="1"/>
                 <SizeBasedTriggeringPolicy size="100MB"/>
             </Policies>
@@ -24,11 +23,10 @@
         <RollingFile
                 name="rollBySizeError"
                 fileName="${FILE_NAME}/connection-error.log"
-                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection-error.%i.log" append="true">
+                filePattern="${FILE_NAME}/%d{yyyy-MM}/connection-error.log" append="true">
             <LevelRangeFilter minLevel="ERROR" maxLevel="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${PATTERN}"/>
             <Policies>
-                <OnStartupTriggeringPolicy minSize="1"/>
                 <TimeBasedTriggeringPolicy interval="1"/>
                 <SizeBasedTriggeringPolicy size="100MB"/>
             </Policies>
@@ -36,7 +34,7 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <logger name="com.connection.api" additivity="false">
+        <logger name="vn.vnpay.connection" additivity="false">
             <AppenderRef ref="rollBySizeInfo"/>
             <AppenderRef ref="rollBySizeError"/>
             <AppenderRef ref="Console"/>

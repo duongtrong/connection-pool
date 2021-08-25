@@ -1,7 +1,7 @@
-package com.connection.api.service;
+package vn.vnpay.connection.service;
 
-import com.connection.api.constants.ConstantsCentral;
-import com.connection.api.exception.ExceptionCentral;
+import vn.vnpay.connection.constants.ConstantsCentral;
+import vn.vnpay.connection.exception.ExceptionCentral;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.logging.log4j.ThreadContext;
+import vn.vnpay.connection.util.HandleUtil;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -17,8 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-
-import static com.connection.api.util.HandleUtil.handleException;
 
 @Log4j2
 public class RabbitMQConnection {
@@ -89,7 +88,7 @@ public class RabbitMQConnection {
       return receiverConsumer(replyQueue);
     } catch (IOException e) {
       log.error("Function publish service has ex:", e);
-      handleException(response, e);
+      HandleUtil.handleException(response, e);
       throw new ExceptionCentral(e);
     }
   }

@@ -1,4 +1,4 @@
-package com.connection.api.constants;
+package vn.vnpay.connection.constants;
 
 import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
