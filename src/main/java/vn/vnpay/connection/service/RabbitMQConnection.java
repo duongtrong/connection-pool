@@ -1,7 +1,5 @@
 package vn.vnpay.connection.service;
 
-import vn.vnpay.connection.constants.ConstantsCentral;
-import vn.vnpay.connection.exception.ExceptionCentral;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -10,6 +8,8 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.logging.log4j.ThreadContext;
+import vn.vnpay.connection.constants.ConstantsCentral;
+import vn.vnpay.connection.exception.ExceptionCentral;
 import vn.vnpay.connection.util.HandleUtil;
 
 import javax.servlet.http.HttpServletResponse;
