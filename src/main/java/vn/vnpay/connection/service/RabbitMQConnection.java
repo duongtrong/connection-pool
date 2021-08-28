@@ -10,14 +10,14 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.logging.log4j.ThreadContext;
 import vn.vnpay.connection.constants.ConstantsCentral;
 import vn.vnpay.connection.exception.ExceptionCentral;
-import vn.vnpay.connection.util.HandleUtil;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Log4j2
 public class RabbitMQConnection {
@@ -45,6 +45,7 @@ public class RabbitMQConnection {
     connectionFactory.setUsername(properties.getProperty(ConstantsCentral.RABBITMQ_USERNAME.getValue()));
     connectionFactory.setPassword(properties.getProperty(ConstantsCentral.RABBITMQ_PASSWORD.getValue()));
     connectionFactory.setHost(properties.getProperty(ConstantsCentral.RABBITMQ_HOSTNAME.getValue()));
+    connectionFactory.setConnectionTimeout(Integer.parseInt(properties.getProperty(ConstantsCentral.RABBITMQ_TIMEOUT.getValue())));
     return connectionFactory;
   }
 
@@ -81,16 +82,17 @@ public class RabbitMQConnection {
   }
 
   public String publishService(String queue, String replyQueue, String exchange,
-                               byte[] body, HttpServletResponse response) {
+                               String body) throws ExecutionException, InterruptedException {
     RabbitMQPoolableChannel channel = channel();
-    try {
-      channel.basicPublish(exchange, queue, null, body);
+    CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+      try {
+        channel.basicPublish(exchange, queue, null, body.getBytes(StandardCharsets.UTF_8));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
       return receiverConsumer(replyQueue);
-    } catch (IOException e) {
-      log.error("Function publish service has ex:", e);
-      HandleUtil.handleException(response, e);
-      throw new ExceptionCentral(e);
-    }
+    });
+    return future.get();
   }
 
   private String receiverConsumer(String replyQueue) {
@@ -98,7 +100,7 @@ public class RabbitMQConnection {
     final String[] message = {null};
     try {
       final BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
-      channel.basicConsume(replyQueue, true, (consumerTag, delivery) -> {
+      channel.basicConsume(replyQueue, false, (consumerTag, delivery) -> {
         ThreadContext.put("tokenKey", String.valueOf(System.currentTimeMillis()));
         log.info("Begin receiver consumer message API RabbitMQ Server");
         while (true) {

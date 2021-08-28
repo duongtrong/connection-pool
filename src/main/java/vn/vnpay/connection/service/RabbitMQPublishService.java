@@ -6,7 +6,6 @@ import vn.vnpay.connection.exception.ExceptionCentral;
 import vn.vnpay.connection.util.HandleUtil;
 
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 @Log4j2
@@ -22,12 +21,13 @@ public class RabbitMQPublishService {
       rabbitMQConnection.declareQueue(properties.getProperty(ConstantsCentral.RABBITMQ_QUEUE.getValue()), properties.getProperty(ConstantsCentral.RABBITMQ_REPLY_QUEUE.getValue()));
       String service = rabbitMQConnection.publishService(properties.getProperty(ConstantsCentral.RABBITMQ_QUEUE.getValue()),
           properties.getProperty(ConstantsCentral.RABBITMQ_REPLY_QUEUE.getValue()),
-          "", data.getBytes(StandardCharsets.UTF_8), resp);
+          "", data);
       log.info("Receiver response data: {}", service);
       log.info("End publish message to queue.");
       return service;
     } catch (Exception e) {
       log.error("Function connection and publish rabbitmq has ex:", e);
+      Thread.currentThread().interrupt();
       HandleUtil.handleException(resp, e);
       throw new ExceptionCentral(e);
     }

@@ -16,6 +16,7 @@ public enum ConstantsCentral {
   RABBITMQ_MAX_TOTAL("rabbitmq.maxTotal"),
   RABBITMQ_MIN_IDLE("rabbitmq.minIdle"),
   RABBITMQ_EXCHANGE("rabbitmq.exchange"),
+  RABBITMQ_TIMEOUT("rabbitmq.timeout"),
   RABBITMQ_REPLY_QUEUE("rabbitmq.reply.queue");
 
   private final String value;

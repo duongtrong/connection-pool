@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Configuration status="INFO">
     <Properties>
-        <Property name="PATTERN">%d{DEFAULT} - %30.30M:%-3L - [%X{tokenKey}] - %m - %c{1.} %n</Property>
+        <Property name="PATTERN">%d{DEFAULT} - [%-5t] - %30.30M:%-3L - [%X{tokenKey}] - %m - %c{1.} %n</Property>
         <Property name="FILE_NAME">/Users/duongtrong/Developers/Coder/connection/logs</Property>
     </Properties>
     <Appenders>
